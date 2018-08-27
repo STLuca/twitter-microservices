@@ -1,0 +1,13 @@
+spring:
+  application:
+      name: graph-service
+
+server:
+  port: 8084
+
+security:
+  oauth2:
+    resource:
+      userInfoUri: https://dev-239508.oktapreview.com/oauth2/default/v1/userinfo
+      tokenInfoUri: https://dev-239508.oktapreview.com/oauth2/default/v1/introspect
+      preferTokenInfo: false

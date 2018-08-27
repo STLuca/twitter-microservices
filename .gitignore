@@ -1,0 +1,20 @@
+
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Maven
+log/
+target/
+.mvn/
+*/mvnw
+*/mvnw.cmd
+
+#misc
+upload-dir/
+search-service/
+greetings-service/
+config/
