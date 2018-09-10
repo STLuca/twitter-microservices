@@ -1,6 +1,7 @@
 CREATE OR REPLACE VIEW UserView AS
     SELECT u.ID as id,
             u.USERNAME as username,
+            u.profile_pic_url as picture,
             (SELECT count(*) FROM Tweets t where t.USER_ID = u.id) as tweetCount,
             (SELECT count(*) FROM Follows f where f.FOLLOWER_ID = u.id) as followingCount,
             (SELECT count(*) FROM Follows f where f.FOLLOWEE_ID = u.id) as followerCount
@@ -11,6 +12,7 @@ CREATE OR REPLACE VIEW TweetView AS
             t.MESSAGE as message,
             u.ID as userID,
             u.USERNAME as username,
+            t.created_date as created_date,
             (SELECT count(*) FROM Likes l WHERE l.TWEET_ID = t.ID) as likeCount,
             (SELECT count(*) FROM Replies r WHERE r.PARENT_ID = t.ID) as replyCount,
             (SELECT r.PARENT_ID FROM replies r WHERE r.CHILD_ID = t.ID LIMIT 1) as replyTo
@@ -22,6 +24,7 @@ CREATE FUNCTION getUserView(userId BIGINT)
     RETURNS TABLE (
 		id BIGINT,
 		username VARCHAR,
+		picture VARCHAR,
 		tweetcount BIGINT,
 		followingcount BIGINT,
 		followercount BIGINT,
@@ -47,6 +50,7 @@ CREATE FUNCTION getTweetView(inputUserID BIGINT)
 		message VARCHAR,
 		userid BIGINT,
 		username VARCHAR,
+		created_date TIMESTAMP,
 		likecount BIGINT,
 		replycount BIGINT,
 		replyTo BIGINT,
@@ -94,6 +98,7 @@ CREATE FUNCTION getFollowingUsers(user_id BIGINT, queryingUser BIGINT)
     RETURNS TABLE (
 		id BIGINT,
         username VARCHAR,
+		picture VARCHAR,
         tweetcount BIGINT,
         followingcount BIGINT,
         followercount BIGINT,
@@ -114,6 +119,7 @@ CREATE FUNCTION getFollowedUsers(user_id BIGINT, queryingUser BIGINT)
     RETURNS TABLE (
 		id BIGINT,
         username VARCHAR,
+		picture VARCHAR,
         tweetcount BIGINT,
         followingcount BIGINT,
         followercount BIGINT,
@@ -136,6 +142,7 @@ CREATE FUNCTION getFeed(user_id BIGINT, queryingUser BIGINT)
         message VARCHAR,
         userid BIGINT,
         username VARCHAR,
+		created_date TIMESTAMP,
         likecount BIGINT,
         replycount BIGINT,
 		replyTo BIGINT,
@@ -169,6 +176,7 @@ CREATE FUNCTION getTweetLikes(tweet_id BIGINT, queryingUser BIGINT)
     RETURNS TABLE (
 		id BIGINT,
         username VARCHAR,
+		picture VARCHAR,
         tweetcount BIGINT,
         followingcount BIGINT,
         followercount BIGINT,
@@ -191,6 +199,7 @@ CREATE FUNCTION getUsersTweets(queryingUser BIGINT, user_id BIGINT)
         message VARCHAR,
         userid BIGINT,
         username VARCHAR,
+		created_date TIMESTAMP,
         likecount BIGINT,
         replycount BIGINT,
         replyTo BIGINT,

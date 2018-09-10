@@ -2,6 +2,8 @@ package com.example.Entities;
 
 import lombok.Value;
 
+import java.util.Date;
+
 @Value
 public class TweetView {
 
@@ -9,6 +11,7 @@ public class TweetView {
     private String message;
     private Long userid;
     private String username;
+    private Date createdDate;
     private Long likeCount;
     private Long replyCount;
     private Long replyTo;

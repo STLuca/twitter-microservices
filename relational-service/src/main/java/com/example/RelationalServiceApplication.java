@@ -1,8 +1,10 @@
 package com.example;
 
+import com.example.EventHandlers.EventHandlers;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import springfox.documentation.spring.data.rest.configuration.SpringDataRestConfiguration;
@@ -17,6 +19,11 @@ public class RelationalServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(RelationalServiceApplication.class, args);
+	}
+
+	@Bean
+	EventHandlers userEventHandler() {
+		return new EventHandlers();
 	}
 
 	/*

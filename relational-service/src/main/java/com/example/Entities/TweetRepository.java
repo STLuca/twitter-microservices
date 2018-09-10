@@ -19,11 +19,11 @@ public interface TweetRepository extends PagingAndSortingRepository<Tweet, Long>
     @PreAuthorize("#tweet?.user?.id == principal?.id")
     void delete(@Param("tweet") Tweet tweet);
 
-    TweetView getTweet(@Param("tweetID") Long tweetID, @Param("queryingUserID") Long queryingUserID);
+    TweetView getTweet(@Param("tweetID") Long tweetID);
 
-    List<TweetView> getUsersTweets(@Param("tweetID") Long tweetID, @Param("queryingUserID") Long queryingUserID);
+    List<TweetView> getUsersTweets(@Param("tweetID") Long tweetID, Pageable pageable);
 
-    List<TweetView> getFeed(@Param("tweetID") Long tweetID, @Param("queryingUserID") Long queryingUserID);
+    List<TweetView> getFeed(@Param("tweetID") Long tweetID, Pageable pageable);
 
 
 

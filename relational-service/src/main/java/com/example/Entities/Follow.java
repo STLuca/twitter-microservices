@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Entity
@@ -15,8 +16,7 @@ public class Follow {
     @GeneratedValue
     private Long followID;
 
-    // @CreatedDate
-    // private LocalDate createdDate;
+    private Timestamp createdDate;
 
     @ManyToOne
     private User follower;

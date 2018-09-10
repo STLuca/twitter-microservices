@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.Entities.User;
 import com.example.Entities.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,19 +23,24 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     public PrincipalExtractor principalExtractor(UserRepository userRepository) {
         return map -> {
             LOGGER.info(map.toString());
-            return userRepository.findByAuth((String) map.get("sub"));
+            User user = userRepository.findByAuth((String) map.get("sub"));
+            if (user == null) {
+                return (String) map.get("sub");
+            } else {
+                return user;
+            }
             // return map.get("sub");
         };
     }
 
+    //instead of hard typing 'api' here, should read the value from properties
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/api").permitAll()
-                .antMatchers(HttpMethod.POST, "/users").permitAll()
-                .antMatchers(HttpMethod.PATCH, "/tweets/*").denyAll()
-                .antMatchers(HttpMethod.PATCH, "/follows/*").denyAll()
-                .antMatchers(HttpMethod.PATCH, "/likes/*").denyAll()
+                .antMatchers(HttpMethod.PATCH, "/api/tweets/*").denyAll()
+                .antMatchers(HttpMethod.PATCH, "/api/follows/*").denyAll()
+                .antMatchers(HttpMethod.PATCH, "/api/likes/*").denyAll()
                 .antMatchers("/**").authenticated();
     }
 

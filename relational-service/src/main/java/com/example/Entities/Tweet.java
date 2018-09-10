@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "Tweets")
@@ -28,17 +29,17 @@ import javax.persistence.*;
 @NamedNativeQueries({
         @NamedNativeQuery(
                 name = "Tweet.getTweet",
-                query = "SELECT * FROM getTweetView(:queryingUserID) t WHERE t.id = :tweetID",
+                query = "SELECT * FROM getTweetView(?#{principal.id}) t WHERE t.id = :tweetID",
                 resultSetMapping = "tweetView"
         ),
         @NamedNativeQuery(
                 name = "Tweet.getUsersTweets",
-                query = "SELECT * FROM getUsersTweets(:queringUserID, :userID)",
+                query = "SELECT * FROM getUsersTweets(?#{principal.id}, :userID)",
                 resultSetMapping = "tweetView"
         ),
         @NamedNativeQuery(
                 name = "Tweet.getFeed",
-                query = "SELECT * FROM getFeed(:userID, :queryingUserID)",
+                query = "SELECT * FROM getFeed(:userID, ?#{principal.id})",
                 resultSetMapping = "tweetView"
         )
 })
@@ -59,15 +60,6 @@ public class Tweet {
             inverseJoinColumns = @JoinColumn(name = "PARENT_ID"))
     private Tweet repliedTo;
 
-    /*
-    @CreatedDate
-    private LocalDate createdDate;
-    */
+    private Timestamp createdDate;
 
-    public Tweet(Long id, String message, User user, Tweet repliedTo) {
-        this.id = id;
-        this.message = message;
-        this.user = user;
-        this.repliedTo = repliedTo;
-    }
 }

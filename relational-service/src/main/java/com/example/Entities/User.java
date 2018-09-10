@@ -30,27 +30,27 @@ import java.util.Date;
 @NamedNativeQueries({
         @NamedNativeQuery(
                 name = "User.getUser",
-                query = "SELECT * FROM getUserView(:queryingUserID) u WHERE u.id = :userID",
+                query = "SELECT * FROM getUserView(?#{principal.id}) u WHERE u.id = :userID",
                 resultSetMapping = "userView"
         ),
         @NamedNativeQuery(
                 name = "User.findAllUserViews",
-                query = "SELECT * FROM getUserView(:queryingUserID)",
+                query = "SELECT * FROM getUserView(?#{principal.id})",
                 resultSetMapping = "userView"
         ),
         @NamedNativeQuery(
                 name = "User.getFollowingUsers",
-                query = "SELECT * FROM getFollowingUsers(:userID, :queryingUserID)",
+                query = "SELECT * FROM getFollowingUsers(:userID, ?#{principal.id})",
                 resultSetMapping = "userView"
         ),
         @NamedNativeQuery(
                 name = "User.getFollowedUsers",
-                query = "SELECT * FROM getFollowedUsers(:userID, :queryingUserID)",
+                query = "SELECT * FROM getFollowedUsers(:userID, ?#{principal.id})",
                 resultSetMapping = "userView"
         ),
         @NamedNativeQuery(
                 name = "User.getTweetLikes",
-                query = "SELECT * FROM getTweetLikes(:tweetID, :queryingUserID)",
+                query = "SELECT * FROM getTweetLikes(:tweetID, ?#{principal.id})",
                 resultSetMapping = "userView"
         )
 })
@@ -64,32 +64,8 @@ public class User {
     private String username;
 
     @JsonIgnore
+    @Column(unique = true)
     private String auth;
 
-    @CreatedDate
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createdDate;
-
-    //lombok not working
-    public User(Long id, String username) {
-        this.id = id;
-        this.username = username;
-    }
+    private String profilePicUrl;
 }
-
-
-
-/*
-@SqlResultSetMapping(
-        name = "mapToUserView",
-        columns = {
-            @ColumnResult(name = "id", type = Long.class),
-            @ColumnResult(name = "username", type = String.class),
-            @ColumnResult(name = "tweetCount", type = Long.class),
-            @ColumnResult(name = "followingCount", type = Long.class),
-            @ColumnResult(name = "followerCount", type = Long.class),
-            @ColumnResult(name = "following", type = Boolean.class),
-            @ColumnResult(name = "follower", type = Boolean.class)
-        }
-)
-*/
