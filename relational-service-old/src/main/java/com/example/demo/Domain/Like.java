@@ -1,13 +1,15 @@
 package com.example.demo.Domain;
 
 import lombok.Data;
-import org.neo4j.ogm.annotation.*;
-import org.neo4j.ogm.annotation.typeconversion.DateLong;
 import org.springframework.data.annotation.CreatedDate;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import java.time.LocalDate;
 
-@RelationshipEntity(type = "likes")
+@Entity
 @Data
 public class Like {
 
@@ -16,13 +18,12 @@ public class Like {
     private Long followID;
 
     @CreatedDate
-    @DateLong
     private LocalDate createdDate;
 
-    @StartNode
+    @ManyToOne
     private User user;
 
-    @EndNode
+    @ManyToOne
     private Tweet tweet;
 
 }

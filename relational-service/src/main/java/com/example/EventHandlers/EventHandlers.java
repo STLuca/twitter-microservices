@@ -1,9 +1,6 @@
-package com.example.demo.EventHandlers;
+package com.example.EventHandlers;
 
-import com.example.demo.Domain.Follow;
-import com.example.demo.Domain.Like;
-import com.example.demo.Domain.Tweet;
-import com.example.demo.Domain.User;
+import com.example.Entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.rest.core.annotation.HandleBeforeCreate;
@@ -18,12 +15,6 @@ public class EventHandlers {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EventHandlers.class);
 
-    private RestTemplate restTemplate;
-
-    public EventHandlers(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
-
     @HandleBeforeCreate
     public void handleUserSave(User user) {
         LOGGER.info(SecurityContextHolder.getContext().getAuthentication().toString());
@@ -32,6 +23,7 @@ public class EventHandlers {
         user.setAuth(name);
     }
 
+    /*
     @HandleBeforeCreate
     public void handleFollowSave(Follow follow) {
         follow.setCreatedDate(LocalDate.now());
@@ -45,6 +37,7 @@ public class EventHandlers {
     @HandleBeforeCreate
     public void handleTweetSave(Tweet tweet) {
         tweet.setCreatedDate(LocalDate.now());
-        restTemplate.postForObject("localhost:8085/tweets", SearchTweet.createFromTweet(tweet), SearchTweet.class);
     }
+    */
+
 }

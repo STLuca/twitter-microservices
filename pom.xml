@@ -24,6 +24,7 @@
 		<module>graph-service</module>
 		<module>image-service</module>
 		<module>search-service</module>
+		<module>relational-service</module>
 	</modules>
 
 	<properties>

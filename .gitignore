@@ -13,8 +13,9 @@ target/
 */mvnw
 */mvnw.cmd
 
-#misc
+# misc
 upload-dir/
 search-service/
 greetings-service/
 config/
+graph-service/
