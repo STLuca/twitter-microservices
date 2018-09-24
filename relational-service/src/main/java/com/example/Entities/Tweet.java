@@ -1,56 +1,23 @@
 package com.example.Entities;
 
-import lombok.AllArgsConstructor;
+import com.example.ValueObjects.TweetMessage;
 import lombok.Data;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 
 @Entity
 @Table(name = "Tweets")
-@SqlResultSetMapping(
-        name = "tweetView",
-        classes = {
-                @ConstructorResult(
-                        targetClass = TweetView.class,
-                        columns = {
-                                @ColumnResult(name = "id", type = Long.class),
-                                @ColumnResult(name = "message", type = String.class),
-                                @ColumnResult(name = "userid", type = Long.class),
-                                @ColumnResult(name = "username", type = String.class),
-                                @ColumnResult(name = "likeCount", type = Long.class),
-                                @ColumnResult(name = "replyCount", type = Long.class),
-                                @ColumnResult(name = "replyTo", type = Long.class),
-                                @ColumnResult(name = "liked", type = Boolean.class)
-                        }
-                )
-        }
-)
-@NamedNativeQueries({
-        @NamedNativeQuery(
-                name = "Tweet.getTweet",
-                query = "SELECT * FROM getTweetView(?#{principal.id}) t WHERE t.id = :tweetID",
-                resultSetMapping = "tweetView"
-        ),
-        @NamedNativeQuery(
-                name = "Tweet.getUsersTweets",
-                query = "SELECT * FROM getUsersTweets(?#{principal.id}, :userID)",
-                resultSetMapping = "tweetView"
-        ),
-        @NamedNativeQuery(
-                name = "Tweet.getFeed",
-                query = "SELECT * FROM getFeed(:userID, ?#{principal.id})",
-                resultSetMapping = "tweetView"
-        )
-})
 @Data
+@EntityListeners(AuditingEntityListener.class)
 public class Tweet {
 
     @Id
     @GeneratedValue
     private Long id;
 
-    private String message;
+    private TweetMessage message;
 
     @ManyToOne
     private User user;
@@ -60,6 +27,7 @@ public class Tweet {
             inverseJoinColumns = @JoinColumn(name = "PARENT_ID"))
     private Tweet repliedTo;
 
-    private Timestamp createdDate;
+    @CreatedDate
+    private Long createdDate;
 
 }

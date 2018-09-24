@@ -1,215 +1,108 @@
+-- New UserView
+DROP TABLE IF EXISTS UserView;
 CREATE OR REPLACE VIEW UserView AS
-    SELECT u.ID as id,
-            u.USERNAME as username,
-            u.profile_pic_url as picture,
-            (SELECT count(*) FROM Tweets t where t.USER_ID = u.id) as tweetCount,
-            (SELECT count(*) FROM Follows f where f.FOLLOWER_ID = u.id) as followingCount,
-            (SELECT count(*) FROM Follows f where f.FOLLOWEE_ID = u.id) as followerCount
-    FROM Users u;
+SELECT
+    0 as id,
+	u.ID as user_id,
+	u.USERNAME as username,
+	u.profile_pic_url as profile_pic_url,
+	(SELECT count(*) FROM Tweets t where t.USER_ID = u.id) as tweet_count,
+	(SELECT count(*) FROM Follows f where f.FOLLOWER_ID = u.id) as following_count,
+	(SELECT count(*) FROM Follows f where f.FOLLOWEE_ID = u.id) as follower_count,
+	EXISTS (SELECT * FROM Follows f WHERE f.followee_id = queriedBy.id AND f.follower_id = u.id) as following,
+	EXISTS (SELECT * FROM Follows f WHERE f.followee_id = u.id AND f.follower_id = queriedBy.id) as follower,
+	queriedBy.id as querying_user
+FROM Users u, Users queriedBy;
 
+-- follower table
+DROP TABLE IF EXISTS FollowerView;
+CREATE OR REPLACE VIEW FollowerView AS
+SELECT userview.*,
+	follows.followee_id as followingUser,
+	follows.created_date as followed_date
+FROM userview
+JOIN follows ON userview.user_id = follows.follower_id;
+
+-- followee table
+DROP TABLE IF EXISTS FollowingView;
+CREATE OR REPLACE VIEW FollowingView AS
+SELECT userview.*,
+	follows.follower_id as followedByUser,
+	follows.created_date as followed_date
+FROM userview
+JOIN follows ON userview.user_id = follows.followee_id;
+
+-- New TweetView
+DROP TABLE IF EXISTS TweetView;
 CREATE OR REPLACE VIEW TweetView AS
-    SELECT  t.ID as id,
-            t.MESSAGE as message,
-            u.ID as userID,
-            u.USERNAME as username,
-            t.created_date as created_date,
-            (SELECT count(*) FROM Likes l WHERE l.TWEET_ID = t.ID) as likeCount,
-            (SELECT count(*) FROM Replies r WHERE r.PARENT_ID = t.ID) as replyCount,
-            (SELECT r.PARENT_ID FROM replies r WHERE r.CHILD_ID = t.ID LIMIT 1) as replyTo
-    FROM Tweets t
-    INNER JOIN Users u ON t.USER_ID = u.ID;
+SELECT
+    0 as id,
+	t.ID as tweet_id,
+	t.MESSAGE as message,
+	u.ID as userID,
+	u.USERNAME as username,
+	t.created_date as tweet_timestamp,
+	(SELECT count(*) FROM Likes l WHERE l.TWEET_ID = t.ID) as likeCount,
+	(SELECT count(*) FROM Replies r WHERE r.PARENT_ID = t.ID) as replyCount,
+	(SELECT r.PARENT_ID FROM replies r WHERE r.CHILD_ID = t.ID LIMIT 1) as replyTo,
+	EXISTS (SELECT * FROM Likes l WHERE l.user_id = queriedBy.id AND l.tweet_id = t.id) as liked,
+	queriedBy.id as querying_user
+FROM Tweets t
+INNER JOIN Users u ON t.USER_ID = u.ID, Users queriedBy;
 
-DROP FUNCTION IF EXISTS getUserView(BIGINT);
-CREATE FUNCTION getUserView(userId BIGINT)
-    RETURNS TABLE (
-		id BIGINT,
-		username VARCHAR,
-		picture VARCHAR,
-		tweetcount BIGINT,
-		followingcount BIGINT,
-		followercount BIGINT,
-		following BOOLEAN,
-		follower BOOLEAN
-	)
-    AS
-    '
-    BEGIN
-        RETURN QUERY
-		SELECT u.*,
-			EXISTS (SELECT * FROM Follows f WHERE f.followee_id = userId AND f.follower_id = u.id) as following,
-			EXISTS (SELECT * FROM Follows f WHERE f.followee_id = u.id AND f.follower_id = userId) as follower
-		FROM UserView u;
-    END;
-    '
-LANGUAGE 'plpgsql';
+-- TweetLikesView
+DROP TABLE IF EXISTS TweetLikesView;
+CREATE OR REPLACE VIEW TweetLikesView AS
+SELECT
+	userview.*,
+	likes.tweet_id AS likedTweet,
+	likes.created_date AS liked_date
+FROM userview
+INNER JOIN likes ON userview.id = likes.user_id;
 
-DROP FUNCTION IF EXISTS getTweetView(BIGINT);
-CREATE FUNCTION getTweetView(inputUserID BIGINT)
-    RETURNS TABLE (
-		id BIGINT,
-		message VARCHAR,
-		userid BIGINT,
-		username VARCHAR,
-		created_date TIMESTAMP,
-		likecount BIGINT,
-		replycount BIGINT,
-		replyTo BIGINT,
-		liked BOOLEAN
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT tweet.*,
-			EXISTS (SELECT * FROM Likes l WHERE l.user_id = inputUserID AND l.tweet_id = tweet.id) as liked
-		FROM TweetView tweet;
-    END; '
-LANGUAGE 'plpgsql';
+-- UsersLikesView
+DROP TABLE IF EXISTS UsersLikesView;
+CREATE OR REPLACE VIEW UsersLikesView AS
+SELECT
+	tweetview.*,
+	likes.user_id as likedBy,
+	likes.created_date as liked_date
+FROM tweetview
+INNER JOIN likes ON tweetview.id = likes.tweet_id;
 
-DROP FUNCTION IF EXISTS getFollowingUserIDs(BIGINT);
-CREATE FUNCTION getFollowingUserIDs(user_id BIGINT)
-    RETURNS TABLE (
-		id BIGINT
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT f.followee_id
-        FROM follows f
-        WHERE f.follower_id = user_id;
-    END; '
-LANGUAGE 'plpgsql';
+-- FeedView
+DROP TABLE IF EXISTS FeedView;
+CREATE OR REPLACE VIEW FeedView AS
+SELECT
+    tweetview.*,
+    follows.follower_id as followed_by
+FROM tweetview
+JOIN follows ON tweetview.userid = follows.followee_id;
 
-DROP FUNCTION IF EXISTS getFollowedUserIDs(BIGINT);
-CREATE FUNCTION getFollowedUserIDs(user_id BIGINT)
-    RETURNS TABLE (
-		id BIGINT
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT f.follower_id
-        FROM follows f
-        WHERE f.followee_id = user_id;
-    END; '
-LANGUAGE 'plpgsql';
+INSERT INTO users Values
+    (2, 'aaa', '', 'bob'),
+    (3, 'bbb', '', 'susan'),
+    (4, 'ccc', '', 'larry');
 
-DROP FUNCTION IF EXISTS getFollowingUsers(BIGINT, BIGINT);
-CREATE FUNCTION getFollowingUsers(user_id BIGINT, queryingUser BIGINT)
-    RETURNS TABLE (
-		id BIGINT,
-        username VARCHAR,
-		picture VARCHAR,
-        tweetcount BIGINT,
-        followingcount BIGINT,
-        followercount BIGINT,
-        following BOOLEAN,
-        follower BOOLEAN
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT u.*
-        FROM getUserView(queryingUser) u
-        WHERE u.id in (SELECT * FROM getFollowingUserIDs(user_id));
-    END; '
-LANGUAGE 'plpgsql';
+INSERT INTO tweets Values
+	(4, 0, 'tweet 1 by bob', 2),
+	(5, 1, 'tweet 2 by bob', 2),
+	(6, 2, 'tweet 3 by susan', 3),
+	(7, 3, 'tweet 4 by susan', 3),
+	(8, 4, 'tweet 5 by larry', 4),
+	(9, 5, 'tweet 6 by larry', 4);
 
-DROP FUNCTION IF EXISTS getFollowedUsers(BIGINT, BIGINT);
-CREATE FUNCTION getFollowedUsers(user_id BIGINT, queryingUser BIGINT)
-    RETURNS TABLE (
-		id BIGINT,
-        username VARCHAR,
-		picture VARCHAR,
-        tweetcount BIGINT,
-        followingcount BIGINT,
-        followercount BIGINT,
-        following BOOLEAN,
-        follower BOOLEAN
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT u.*
-        FROM getUserView(queryingUser) u
-        WHERE u.id in (SELECT * FROM getFollowedUserIDs(user_id));
-    END; '
-LANGUAGE 'plpgsql';
+INSERT INTO likes Values
+    (10, 6, 6, 2),
+    (11, 7, 9, 2),
+    (12, 8, 4, 3),
+    (13, 9, 5, 3),
+    (14, 10, 4, 4),
+    (15, 11, 6, 4);
 
-DROP FUNCTION IF EXISTS getFeed(BIGINT, BIGINT);
-CREATE FUNCTION getFeed(user_id BIGINT, queryingUser BIGINT)
-    RETURNS TABLE (
-		id BIGINT,
-        message VARCHAR,
-        userid BIGINT,
-        username VARCHAR,
-		created_date TIMESTAMP,
-        likecount BIGINT,
-        replycount BIGINT,
-		replyTo BIGINT,
-        liked BOOLEAN
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT tweets.*
-        FROM getTweetView(queryingUser) tweets
-        WHERE tweets.userid IN (SELECT * FROM getFollowingUserIDs(users_id));
-    END; '
-LANGUAGE 'plpgsql';
-
-DROP FUNCTION IF EXISTS getTweetLikesUserIDs(BIGINT);
-CREATE FUNCTION getTweetLikesUserIDs(tweet_id BIGINT)
-    RETURNS TABLE (
-		id BIGINT
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT l.user_id
-        FROM likes l
-        WHERE l.tweet_id = tweet_id;
-    END; '
-LANGUAGE 'plpgsql';
-
-DROP FUNCTION IF EXISTS getTweetLikes(BIGINT, BIGINT);
-CREATE FUNCTION getTweetLikes(tweet_id BIGINT, queryingUser BIGINT)
-    RETURNS TABLE (
-		id BIGINT,
-        username VARCHAR,
-		picture VARCHAR,
-        tweetcount BIGINT,
-        followingcount BIGINT,
-        followercount BIGINT,
-        following BOOLEAN,
-        follower BOOLEAN
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT u.*
-        FROM getUserView(queryingUser) u
-        WHERE u.id IN (SELECT * FROM getTweetLikesUserIDs(tweet_id));
-    END; '
-LANGUAGE 'plpgsql';
-
-DROP FUNCTION IF EXISTS getUsersTweets(BIGINT, BIGINT);
-CREATE FUNCTION getUsersTweets(queryingUser BIGINT, user_id BIGINT)
-    RETURNS TABLE (
-		id BIGINT,
-        message VARCHAR,
-        userid BIGINT,
-        username VARCHAR,
-		created_date TIMESTAMP,
-        likecount BIGINT,
-        replycount BIGINT,
-        replyTo BIGINT,
-        liked BOOLEAN
-	)
-    AS '
-    BEGIN
-        RETURN QUERY
-		SELECT *
-        FROM getTweetView(queryingUser) t
-        WHERE t.user_id = user_id;
-    END; '
-LANGUAGE 'plpgsql';
+INSERT INTO follows Values
+	(16, 11, 2, 2),
+	(17, 12, 2, 3),
+	(18, 13, 2, 4),
+	(19, 14, 3, 2),
+	(20, 15, 3, 4);

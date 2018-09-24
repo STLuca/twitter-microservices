@@ -1,12 +1,13 @@
 package com.example;
 
 import com.example.Entities.User;
-import com.example.Entities.UserRepository;
+import com.example.Repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.PrincipalExtractor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.repository.query.spi.EvaluationContextExtension;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,6 +32,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
             }
             // return map.get("sub");
         };
+    }
+
+    @Bean
+    public EvaluationContextExtension securityEvaluationContextExtension() {
+        return new SecurityEvaluationContextExtension();
     }
 
     //instead of hard typing 'api' here, should read the value from properties
